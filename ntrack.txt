@@ -19,7 +19,7 @@ Note: this effort almost completely unrelated to the new UDP bittorrent tracker 
 
 
 Changes from bt
-===============
+---------------
 
 Proposed backwards compatible Changes from the bt tracking protocol:
 
@@ -45,4 +45,19 @@ Is equivalent to this request in the classic bt tracker protocol:
 
 	http://mybttracker.com/tracker?info_hash=MYKEY&peer_id=123.45.67.89:1234&port=1234
 
+
+Related protocols
+-----------------
+
+One could think of ntrack as a centralized, dynamically updated, and extremely simplified DNS system.
+
+Ntrack is compatible with [the HTTP 0.2 subset of HTTP](<http://http02.cat-v.org).
+
+
+Possible uses
+-------------
+
+- Online games
+- Chat systems 
+- Distributed computing
 
