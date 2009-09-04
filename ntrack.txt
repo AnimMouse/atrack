@@ -1,0 +1,48 @@
+Ntrack: The Network Tracker protocol
+====================================
+
+
+Ntrack is a simplification and generalization of the bittorrent HTTP tracker protocol.
+
+
+The aim is to produce a more lean and streamlined protocol that removes bittorrent specific aspects and can be used for any number of clients to associate ip/ports to a given key (info_hash in the case of bittorrent).
+
+The main goals are:
+
+- Simple: retain the simplicity and transparency of textual data, and further simplify the data structures and URL scheme.
+- Lean: as bandwidth and computationally efficient as possible
+- General: Should be useful for any task that requires a bunch of decentralized clients to publish their connections. 
+- Backwards compatible: we don't want to break (too much) existing bittorrent clients.
+
+
+Note: this effort almost completely unrelated to the new UDP bittorrent tracker protocol.
+
+
+Changes from bt
+===============
+
+Proposed backwards compatible Changes from the bt tracking protocol:
+
+- 'info_hash' is an arbitrary string 
+- 'peer_id' can be ignored (Not sure what it might have been useful for.), for backwards compatibility purposes a peer_id can be generated as the string IP:PORT (or a hash of thereof)
+- 'ip' is deprecated, can be ignored, always use the HTTP client's ip
+- 'port' is optional, if missing use the port of origin of the HTTP connection.
+- 'uploaded', 'downloaded' and 'left' can be ignored.
+- The semantics of 'event' are ambiguous and bittorrent specific enough that it can be safely ignored.
+
+
+New ntrack REST-ful interface
+-----------------------------
+
+A ntracker serves by convention under /ntrk/, so only an ip or domain, and no full url is needed to refer to the ntracker.
+
+An HTTP GET request from IP 123.45.67.89 and port 1234 to the URL:
+
+	http://myntracker.com/ntrk/MYKEY
+
+
+Is equivalent to this request in the classic bt tracker protocol:
+
+	http://mybttracker.com/tracker?info_hash=MYKEY&peer_id=123.45.67.89:1234&port=1234
+
+
