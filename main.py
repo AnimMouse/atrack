@@ -34,7 +34,6 @@ def main():
     ip = environ['REMOTE_ADDR']
     port = args['port'][0]
 
-    newpeer = False
     updatetrack = False
 
     # Get existing peers
@@ -44,29 +43,25 @@ def main():
         # TODO rate limiting, exponential backoff, etc
 
         if len(s) > 10:
-            rips = set(sample(s, 10))
+            ips = set(sample(s, 10))
         else:
-            rips = s
+            ips = s
 
-        peers = get_multi(rips, namespace='I')
+        peers = get_multi(ips, namespace='I')
 
-        lostpeers = [p for p in rips if p not in peers]
+        lostpeers = [p for p in ips if p not in peers]
         if lostpeers: # Remove lost peers
             s.difference_update(lostpeers)
-            rips.difference_update(lostpeers)
             updatetrack = True
 
-        if ip not in s: # Assume new peer
-            newpeer = True
-
+        peers.pop(ip, None) # Remove self from list of returned peers
 
     # New track! Create track with this ip and we are done!
     else:
-        s = set([ip])
-        rips = set([]) # No peers yet!
-        newpeer = True # Will also update track
+        s = set([])
+        peers = {}
 
-    if newpeer:
+    if ip not in s: # Assume new peer
         mset(ip, (peer_id, port), namespace='I')
         s.add(ip)
         updatetrack = True
@@ -76,8 +71,8 @@ def main():
 
     print "Content-type: text/plain"
     print ""
-    #print {'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in rips]} 
-    print bencode({'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in rips]})
+    #print {'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]} 
+    print bencode({'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]})
 
 
 ################################################################################
