@@ -12,6 +12,7 @@ Memcached namespaces:
 
 - 'K': Keys / info_hashes -> set of ips (sets have a slight overhead over lists, but are more foolsafe)
 - 'I': Client ips -> metadata (currently a tuple with one item: (Port,))
+- 'D': Debug data
 
 This allows peer info to be shared and decay by itself, we will delete references to peer from
 the key namespace lazily.
@@ -21,13 +22,27 @@ required_args = ['info_hash', 'port']
 
 inst_key_cache = {}
 
+DEBUG = True
+
+def resps(s):
+    print "Content-type: text/plain"
+    print ""
+    print s, # Make sure we don't add a trailing new line!
+
 def main():
     args = parse_qs(environ['QUERY_STRING'])
 
+    if DEBUG:
+        dtracks = get('tracks', namespace='D')
+        if not dtracks:
+            dtracks = set([])
+        dpeers = get('peers', namespace='D')
+        if not dpeers:
+            dpeers = set([])
+
     if not args:
-        print "Content-type: text/plain"
-        print ""
-        print repr(inst_key_cache)
+        if DEBUG:
+            resps(repr(inst_key_cache) +"\n"+ repr(dtracks) +"\n"+ repr(dpeers))
         return
 
     for a in required_args:
@@ -38,6 +53,8 @@ def main():
     key = args['info_hash'][0]
     ip = environ['REMOTE_ADDR']
     port = int(args['port'][0]) # TODO Should catch str->int conversion errors
+    # TODO BT: If left=0, the download is done and we should not return any peers.
+    # TODO BT: On event=stop should remove peer.
     debug("Requested key %s by %s : %d" % (key, ip, port))
 
     updatetrack = False
@@ -68,21 +85,25 @@ def main():
         s = set([])
         peers = {}
 
+    if DEBUG:
+        dpeers.add((ip, port,))
+        mset('peers', dpeers, namespace='D')
+
+    mset(ip, (port,), namespace='I') # This might be redundant, but ensures we update the port number in case it has changed.
     if ip not in s: # Assume new peer
         debug("New peer %s port %d" % (ip, port))
-        mset(ip, (port,), namespace='I')
         s.add(ip)
         updatetrack = True
 
     if updatetrack: 
+        if DEBUG:
+            dtracks.add(tuple(s))
+            mset('tracks', dtracks, namespace='D')
         mset(key, s, namespace='K')
         inst_key_cache[key] = s
 
-    print "Content-type: text/plain"
-    print ""
-    #print {'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]} 
-    #print bencode({'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]})
-    print bencode({'interval': 1024, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}),
+    # We should try removing the int(<port>), I think it was only needed because memcached was stale with non-int values.
+    resps(bencode({'interval': 1024, 'peers': [{'ip': p, 'port': int(peers[p][0])} for p in peers]}))
 
 
 ################################################################################
