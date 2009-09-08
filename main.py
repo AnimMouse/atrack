@@ -1,10 +1,8 @@
-import logging as log
+from logging import debug, error, info
 from os import environ
 from cgi import parse_qs
 from google.appengine.api.memcache import get, set as mset, get_multi
 from random import sample
-
-required_args = ['info_hash', 'peer_id', 'port'] # FUTURE: 'port' should be optional
 
 """
 A ntrack tracker
@@ -13,26 +11,34 @@ A ntrack tracker
 Memcached namespaces:
 
 - 'K': Keys / info_hashes -> set of ips (sets have a slight overhead over lists, but are more foolsafe)
-- 'I': Client ips -> metadata (currently a tuple with two items: (Peer Id, Port))
+- 'I': Client ips -> metadata (currently a tuple with one item: (Port,))
 
 This allows peer info to be shared and decay by itself, we will delete references to peer from
 the key namespace lazily.
-
-
 """
+
+required_args = ['info_hash', 'port']
+
+inst_key_cache = {}
 
 def main():
     args = parse_qs(environ['QUERY_STRING'])
 
+    if not args:
+        print "Content-type: text/plain"
+        print ""
+        print repr(inst_key_cache)
+        return
+
     for a in required_args:
         if a not in args or len(args[a]) < 1:
-            log.error("Missing required argument: "+a)
-            raise Exception()
+            error("Missing required argument: "+a)
+            raise Exception("Missing required argument: "+a )
 
     key = args['info_hash'][0]
-    peer_id = args['peer_id'][0]
     ip = environ['REMOTE_ADDR']
     port = args['port'][0]
+    debug("Requested key "+key+" by "+ip+" port "+port)
 
     updatetrack = False
 
@@ -51,6 +57,7 @@ def main():
 
         lostpeers = [p for p in ips if p not in peers]
         if lostpeers: # Remove lost peers
+            info("Removed 'lost' peers: "+lostpeers+" from track: "+key) 
             s.difference_update(lostpeers)
             updatetrack = True
 
@@ -62,17 +69,20 @@ def main():
         peers = {}
 
     if ip not in s: # Assume new peer
-        mset(ip, (peer_id, port), namespace='I')
+        debug("New peer "+ip+" port "+port)
+        mset(ip, (port,), namespace='I')
         s.add(ip)
         updatetrack = True
 
     if updatetrack: 
         mset(key, s, namespace='K')
+        inst_key_cache[key] = s
 
     print "Content-type: text/plain"
     print ""
     #print {'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]} 
-    print bencode({'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]})
+    #print bencode({'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]})
+    print bencode({'interval': 1024, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]})
 
 
 ################################################################################
