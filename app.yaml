@@ -1,4 +1,5 @@
-application: atrack
+#application: atrack
+application: bittrk  
 version: 1
 runtime: python
 api_version: 1
@@ -10,6 +11,10 @@ handlers:
 
 - url: /static/
   static_dir: static
+
+- url: /
+  static_files: static/index.html
+  upload: static/(.*)
 
 - url: /app-admin/
   script: $PYTHON_LIB/google/appengine/ext/admin
