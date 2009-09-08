@@ -1,12 +1,12 @@
 #application: atrack
 application: bittrk  
-version: 1
+version: 2
 runtime: python
 api_version: 1
 
 handlers:
 
-- url: /ntrack
+- url: /announce
   script: main.py
 
 - url: /static/
@@ -15,6 +15,10 @@ handlers:
 - url: /
   static_files: static/index.html
   upload: static/(.*)
+
+- url: /favicon.ico
+  static_files: static/imgs/favicon.ico
+  upload: static/imgs/favicon.ico
 
 - url: /app-admin/
   script: $PYTHON_LIB/google/appengine/ext/admin
