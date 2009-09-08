@@ -37,8 +37,8 @@ def main():
 
     key = args['info_hash'][0]
     ip = environ['REMOTE_ADDR']
-    port = args['port'][0]
-    debug("Requested key "+key+" by "+ip+" port "+port)
+    port = int(args['port'][0]) # TODO Should catch str->int conversion errors
+    debug("Requested key %s by %s : %d" % (key, ip, port))
 
     updatetrack = False
 
@@ -69,7 +69,7 @@ def main():
         peers = {}
 
     if ip not in s: # Assume new peer
-        debug("New peer "+ip+" port "+port)
+        debug("New peer %s port %d" % (ip, port))
         mset(ip, (port,), namespace='I')
         s.add(ip)
         updatetrack = True
@@ -82,7 +82,7 @@ def main():
     print ""
     #print {'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]} 
     #print bencode({'interval': 1024, 'peers': [{'peer id': peers[p][0], 'ip': p, 'port': peers[p][1]} for p in peers]})
-    print bencode({'interval': 1024, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]})
+    print bencode({'interval': 1024, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}),
 
 
 ################################################################################
