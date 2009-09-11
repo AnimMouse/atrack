@@ -8,6 +8,7 @@ handlers:
 
 - url: /announce
   script: main.py
+  secure: optional
 
 - url: /ntrack # Backwards compat XXX Remove me eventually
   script: main.py
