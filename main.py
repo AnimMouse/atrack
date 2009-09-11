@@ -29,6 +29,12 @@ def resps(s):
     print ""
     print s, # Make sure we don't add a trailing new line!
 
+def key2s(k):
+    if k:
+        return ''.join(["%03X"% ord(c) for c in s])
+    else:
+        return "NO KEY!"
+
 def main():
     args = parse_qs(environ['QUERY_STRING'])
 
@@ -55,7 +61,7 @@ def main():
     port = int(args['port'][0]) # TODO Should catch str->int conversion errors
     # TODO BT: If left=0, the download is done and we should not return any peers.
     # TODO BT: On event=stop should remove peer.
-    debug("Requested key %s by %s : %d" % (key, ip, port))
+    debug("Requested key %s by %s : %d" % (key2s(key), ip, port))
 
     updatetrack = False
 
