@@ -1,6 +1,6 @@
 #application: atrack
 application: bittrk  
-version: 2
+version: 3
 runtime: python
 api_version: 1
 
@@ -10,7 +10,7 @@ handlers:
   script: main.py
   secure: optional
 
-- url: /ntrack # Backwards compat XXX Remove me eventually
+- url: /ntrack
   script: main.py
 
 - url: /static/
@@ -33,10 +33,11 @@ handlers:
 
 - url: /scrape
   static_files: static/null.html
-  upload:static/null.html
+  upload: static/null.html
 
 - url: /google1c5d509bd1822f1d.html
   static_files: static/null.html
+  upload: static/null.html
 
 #- url: /.*
 #  script: 404.py
