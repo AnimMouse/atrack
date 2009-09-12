@@ -31,7 +31,7 @@ def resps(s):
 
 def key2s(k):
     if k:
-        return ''.join(["%03X"% ord(c) for c in s])
+        return ''.join(["%03X"% ord(c) for c in k])
     else:
         return "NO KEY!"
 
