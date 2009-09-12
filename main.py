@@ -90,7 +90,7 @@ def main():
         inst_key_cache[key] = s
 
     # We should try removing the int(<port>), I think it was only needed because memcached was stale with non-int values.
-    resps(bencode({'interval': 1024, 'peers': [{'ip': p, 'port': int(peers[p][0])} for p in peers]}))
+    resps(bencode({'interval': 1024, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
 
 
 ################################################################################
