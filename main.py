@@ -38,17 +38,7 @@ def key2s(k):
 def main():
     args = parse_qs(environ['QUERY_STRING'])
 
-    if DEBUG:
-        dtracks = get('tracks', namespace='D')
-        if not dtracks:
-            dtracks = set([])
-        dpeers = get('peers', namespace='D')
-        if not dpeers:
-            dpeers = set([])
-
     if not args:
-        if DEBUG:
-            resps(repr(inst_key_cache) +"\n"+ repr(dtracks) +"\n"+ repr(dpeers))
         return
 
     for a in required_args:
@@ -61,7 +51,6 @@ def main():
     port = int(args['port'][0]) # TODO Should catch str->int conversion errors
     # TODO BT: If left=0, the download is done and we should not return any peers.
     # TODO BT: On event=stop should remove peer.
-    debug("Requested key %s by %s : %d" % (key2s(key), ip, port))
 
     updatetrack = False
 
@@ -91,20 +80,12 @@ def main():
         s = set([])
         peers = {}
 
-    if DEBUG:
-        dpeers.add((ip, port,))
-        mset('peers', dpeers, namespace='D')
-
     mset(ip, (port,), namespace='I') # This might be redundant, but ensures we update the port number in case it has changed.
     if ip not in s: # Assume new peer
-        debug("New peer %s port %d" % (ip, port))
         s.add(ip)
         updatetrack = True
 
     if updatetrack: 
-        if DEBUG:
-            dtracks.add(tuple(s))
-            mset('tracks', dtracks, namespace='D')
         mset(key, s, namespace='K')
         inst_key_cache[key] = s
 
