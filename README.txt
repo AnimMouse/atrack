@@ -18,3 +18,12 @@ License
 All original code is in the public domain.
 
 The Bencode generation code originally from the standard python bittorrent implementation is by Petru Paler and under a MIT licenses (AFAIK).
+
+
+Notes
+-----
+
+For reference here are other trackers for app engine at various stages of development
+
+- http://code.google.com/p/open-tracker/ 
+
