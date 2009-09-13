@@ -31,9 +31,9 @@ handlers:
 - url: /debug
   script: debug.py
 
-- url: /scrape
-  static_files: static/null.html
-  upload: static/null.html
+#- url: /scrape
+  #static_files: static/null.html
+  #upload: static/null.html
 
 - url: /google1c5d509bd1822f1d.html
   static_files: static/null.html
