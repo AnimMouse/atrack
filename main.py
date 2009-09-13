@@ -50,6 +50,10 @@ def main():
             raise Exception("Missing required argument: "+a )
 
     key = args['info_hash'][0]
+    if(len(key) > 128):
+        info("Rejected too big key: %s ..."%repr(key[:128]))
+        resps(bencode({'failure reason': "Insanely long key!"}))
+        return
     ip = environ['REMOTE_ADDR']
     port = int(args['port'][0]) # TODO Should catch str->int conversion errors
     # TODO BT: If left=0, the download is done and we should not return any peers.
@@ -63,8 +67,8 @@ def main():
     if s:
         # TODO rate limiting, exponential backoff, etc
 
-        if len(s) > 10:
-            ips = set(sample(s, 10))
+        if len(s) > 32:
+            ips = set(sample(s, 32))
         else:
             ips = s
 
@@ -93,7 +97,7 @@ def main():
         inst_key_cache[key] = s
 
     # We should try removing the int(<port>), I think it was only needed because memcached was stale with non-int values.
-    resps(bencode({'interval': 1024, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
+    resps(bencode({'interval': 512, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
 
 
 ################################################################################
