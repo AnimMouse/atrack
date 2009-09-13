@@ -39,6 +39,9 @@ def main():
     args = parse_qs(environ['QUERY_STRING'])
 
     if not args:
+        print "Status: 301 Moved Permanantly"
+        print "Location: /"
+        print ""
         return
 
     for a in required_args:
