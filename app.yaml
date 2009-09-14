@@ -10,6 +10,11 @@ handlers:
   script: main.py
   secure: optional
 
+- url: /announceannounce # Broken requests?!?!?
+  script: main.py
+  secure: optional
+
+
 - url: /ntrack
   script: main.py
 

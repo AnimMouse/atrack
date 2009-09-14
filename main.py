@@ -96,6 +96,8 @@ def main():
         mset(key, s, namespace='K')
         inst_key_cache[key] = s
 
+    # TODO: add a 'warning message' to response if path doesn't end in /announce or /ntrack (for broken stuff like /announceannounce)
+
     # We should try removing the int(<port>), I think it was only needed because memcached was stale with non-int values.
     resps(bencode({'interval': 512, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
 
