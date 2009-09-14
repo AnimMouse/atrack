@@ -18,12 +18,6 @@ This allows peer info to be shared and decay by itself, we will delete reference
 the key namespace lazily.
 """
 
-required_args = ['info_hash', 'port']
-
-inst_key_cache = {}
-
-DEBUG = True
-
 def resps(s):
     print "Content-type: text/plain"
     print ""
@@ -44,7 +38,7 @@ def main():
         print ""
         return
 
-    for a in required_args:
+    for a in ['info_hash', 'port']:
         if a not in args or len(args[a]) < 1:
             return # We get many of this, don't waste bw or cpu on them!
             info("Missing required argument: %s ..."%a)
@@ -101,13 +95,9 @@ def main():
 
     if updatetrack: 
         mset(key, s, namespace='K')
-        inst_key_cache[key] = s
 
-    # TODO: add a 'warning message' to response if path doesn't end in /announce or /ntrack (for broken stuff like /announceannounce)
-
-    # We should try removing the int(<port>), I think it was only needed because memcached was stale with non-int values.
     #debug("Returned %s peers" % len(peers))
-    resps(bencode({'interval': 3048, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
+    resps(bencode({'interval': 4348, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
 
 
 ################################################################################
