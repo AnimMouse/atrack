@@ -1,7 +1,7 @@
 from logging import debug, error, info
 from os import environ
 from cgi import parse_qs
-from google.appengine.api.memcache import get, set as mset, get_multi
+from google.appengine.api.memcache import get, set as mset, get_multi, delete as mdel
 from random import sample
 
 """
@@ -11,7 +11,7 @@ A ntrack tracker
 Memcached namespaces:
 
 - 'K': Keys / info_hashes -> set of ips (sets have a slight overhead over lists, but are more foolsafe)
-- 'I': Client ips -> metadata (currently a tuple with one item: (Port,))
+- 'I': Client ips -> metadata (currently a tuple with one item: (Port,)) XXX the same client could be in multiple tracks with different ips! (Think NAT!)
 - 'D': Debug data
 
 This allows peer info to be shared and decay by itself, we will delete references to peer from
@@ -46,8 +46,9 @@ def main():
 
     for a in required_args:
         if a not in args or len(args[a]) < 1:
-            error("Missing required argument: "+a)
-            raise Exception("Missing required argument: "+a )
+            return # We get many of this, don't waste bw or cpu on them!
+            info("Missing required argument: %s ..."%a)
+            resps(bencode({'failure reason': "You must provide %s!"%a}))
 
     key = args['info_hash'][0]
     if(len(key) > 128):
@@ -57,7 +58,13 @@ def main():
     ip = environ['REMOTE_ADDR']
     port = int(args['port'][0]) # TODO Should catch str->int conversion errors
     # TODO BT: If left=0, the download is done and we should not return any peers.
-    # TODO BT: On event=stop should remove peer.
+    event = args.pop('event', [None])[0]
+    if event == "stopped":
+        # XXX We should only remove it from this track, but this is good enough.
+        mdel(ip, namespace='I')
+        return # They are going away, don't waste bw/cpu on this.
+        debug("Deleting peer %s"%ip)
+        resps(bencode({'interval': 2048, 'peers': []}))
 
     updatetrack = False
 
@@ -76,7 +83,7 @@ def main():
 
         lostpeers = [p for p in ips if p not in peers]
         if lostpeers: # Remove lost peers
-            info("Removed 'lost' peers: "+lostpeers+" from track: "+key) 
+            #info("Removed 'lost' peers: "+repr(lostpeers)+" from track: "+key2s(key)) 
             s.difference_update(lostpeers)
             updatetrack = True
 
@@ -99,7 +106,8 @@ def main():
     # TODO: add a 'warning message' to response if path doesn't end in /announce or /ntrack (for broken stuff like /announceannounce)
 
     # We should try removing the int(<port>), I think it was only needed because memcached was stale with non-int values.
-    resps(bencode({'interval': 512, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
+    #debug("Returned %s peers" % len(peers))
+    resps(bencode({'interval': 3048, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
 
 
 ################################################################################
