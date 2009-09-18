@@ -44,7 +44,7 @@ def main():
     a = dict([(k, [int(s[d][k]) for d in s]) for k in ats]) # attr -> vals
     a = dict([(k, (max(a[k]), min(a[k]), a[k])) for k in a]) # attrs -> (max, min, vals)
     #a = dict([(k, [62*(v+1-a[k][1])/(a[k][0]+1-a[k][1]) for v in a[k][2]]) for k in a]) # attrs -> norml-vals
-    a = dict([(k, ([62*v/(a[k][0]+1) for v in a[k][2]], a[k][1], a[k][0])) for k in a]) # attrs -> norml-vals
+    a = dict([(k, ([62*(v+1-a[k][1])/(a[k][0]+1-a[k][1]) for v in a[k][2]], a[k][1], a[k][0])) for k in a]) # attrs -> norml-vals
     print "Content-type: text/html"
     print ""
     #l = ["rend('"+k+"', %s);"%str([int(s[d][k]) for d in s]) for k in ats]
@@ -74,7 +74,7 @@ function main() {
     rnd('stats', [a['hits'][0], a['byte_hits'][0]], [a['hits'][1:3], a['byte_hits'][1:3]], ['FF0088', '0077cc'], ["Hits", "Hit Bytes"])
     rnd('stats', [a['items'][0], a['bytes'][0]], [a['items'][1:3], a['bytes'][1:3]], ['FF0088', '0077cc'], ["Items", "Bytes"])
     rnd('stats', [a['misses'][0]], [a['misses'][1:3]], ['FF0088'], ["Miss"])
-    rnd('stats', [a['oldest_item_age'][0]], [a['oldest_item_age'][1:3]], ['0077cc'], ["Max Age"])
+    rnd('stats', [a['oldest_item_age'][0]], [[x/60 for x in a['oldest_item_age'][1:3]]], ['0077cc'], ["Max Age"])
     print """
 }
 </script>
