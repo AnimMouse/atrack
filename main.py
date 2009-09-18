@@ -97,7 +97,7 @@ def main():
         mset(key, s, namespace='K')
 
     #debug("Returned %s peers" % len(peers))
-    resps(bencode({'interval': 4348, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
+    resps(bencode({'interval': 4424, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
 
 
 ################################################################################
