@@ -18,7 +18,7 @@ def stat():
     if sts == None:
         sts = []
     sts.insert(0, t)
-    sts = sts[:60*24*5] # Keep ~5 days of data
+    sts = sts[:2*6*24] # Keep two days of data (at a rate of one sample/10min )
     m.set('sample-times', sts, namespace=NS)
 
 
@@ -43,8 +43,8 @@ def main():
     #  
     a = dict([(k, [int(s[d][k]) for d in s]) for k in ats]) # attr -> vals
     a = dict([(k, (max(a[k]), min(a[k]), a[k])) for k in a]) # attrs -> (max, min, vals)
-    #a = dict([(k, [62*(v+1-a[k][1])/(a[k][0]+1-a[k][1]) for v in a[k][2]]) for k in a]) # attrs -> norml-vals
-    a = dict([(k, ([62*(v+1-a[k][1])/(a[k][0]+1-a[k][1]) for v in a[k][2]], a[k][1], a[k][0])) for k in a]) # attrs -> norml-vals
+    #a = dict([(k, [61*(v+1-a[k][1])/(a[k][0]+1-a[k][1]) for v in a[k][2]]) for k in a]) # attrs -> norml-vals
+    a = dict([(k, ([61*(v+1-a[k][1])/(a[k][0]+1-a[k][1]) for v in a[k][2]], a[k][1], a[k][0])) for k in a]) # attrs -> norml-vals
     print "Content-type: text/html"
     print ""
     #l = ["rend('"+k+"', %s);"%str([int(s[d][k]) for d in s]) for k in ats]
