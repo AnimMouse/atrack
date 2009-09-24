@@ -117,8 +117,8 @@ def real_main():
     #debug("Returned %s peers" % len(peers))
     resps(bencode({'interval': 4424, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
 
-main = prof_main
-#main = real_main
+#main = prof_main
+main = real_main
 
 ################################################################################
 # Bencode encoding code by Petru Paler, slightly simplified by uriel
