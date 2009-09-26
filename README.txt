@@ -1,15 +1,23 @@
-Atrack: A Ntrack Implementation
+Atrack: An Ntrack Implementation
 ===============================
 
-Ntrack is a minimalist implementation of the Ntrack protocol (see ntrac.txt)
+Atrack is a minimalist implementation of the Ntrack protocol (see ntrac.txt)
 designed for usage with Google's App Engine.
+
+
+Setup Instructions
+------------------
+
+Create an App Engine application, change the 'application' name in app.yaml to
+match your app name, edit static/index.html to suit your taste and to mention
+the address of your tracker. Deploy with appcfg.py! You are done! 
 
 
 Contact
 -------
 
-Email: uriel@berlinblue.org
-Irc: #werc in irc.freenode.org
+http://uriel.cat-v.org/contact
+Irc: #bittorrent in irc.freenode.org
 
 
 License
