@@ -1,8 +1,9 @@
 from logging import debug, error, info
 from os import environ
 from cgi import parse_qs
-from google.appengine.api.memcache import get, set as mset, get_multi, delete as mdel
+from hashlib import md5
 from random import sample
+from google.appengine.api.memcache import get, set as mset, get_multi, delete as mdel
 
 """
 A ntrack tracker
@@ -10,12 +11,14 @@ A ntrack tracker
 
 Memcached namespaces:
 
-- 'K': Keys / info_hashes -> set of ips (sets have a slight overhead over lists, but are more foolsafe)
-- 'I': Client ips -> metadata (currently a tuple with one item: (Port,)) XXX the same client could be in multiple tracks with different ips! (Think NAT!)
+- 'K': Keys / info_hashes -> String of | delimited peer-hashes
+- 'I': peer-hash -> Metadata string: 'ip|port'
 - 'D': Debug data
 
-This allows peer info to be shared and decay by itself, we will delete references to peer from
-the key namespace lazily.
+A peer hash is: md5("%s/%d").hexdigest()[:16]
+
+This allows peer info to be shared and decay by itself, we will delete
+references to peer from the key namespace lazily.
 """
 
 def resps(s):
@@ -23,16 +26,8 @@ def resps(s):
     print ""
     print s, # Make sure we don't add a trailing new line!
 
-def key2s(k):
-    if k:
-        return ''.join(["%03X"% ord(c) for c in k])
-    else:
-        return "NO KEY!"
-
-
 def prof_main():
     # This is the main function for profiling 
-    # We've renamed our original main() above to real_main()
     import cProfile, pstats, StringIO
     import logging
     prof = cProfile.Profile()
@@ -51,71 +46,80 @@ def real_main():
     args = parse_qs(environ['QUERY_STRING'])
 
     if not args:
-        print "Status: 301 Moved Permanantly"
-        print "Location: /"
-        print ""
+        print "Status: 301 Moved Permanantly\nLocation: /\n\n",
         return
 
-    for a in ['info_hash', 'port']:
+    for a in ('info_hash', 'port'):
         if a not in args or len(args[a]) < 1:
-            return # We get many of this, don't waste bw or cpu on them!
-            info("Missing required argument: %s ..."%a)
+            return # Maybe now that trackhub is fixed we shoud be less harsh?
             resps(bencode({'failure reason': "You must provide %s!"%a}))
 
-    key = args['info_hash'][0]
-    if(len(key) > 128):
-        info("Rejected too big key: %s ..."%repr(key[:128]))
-        resps(bencode({'failure reason': "Insanely long key!"}))
-        return
     ip = environ['REMOTE_ADDR']
-    port = int(args['port'][0]) # TODO Should catch str->int conversion errors
+    key = args['info_hash'][0]
+    err = None
+
+    if(len(key) > 128):
+        err = "Insanely long key!"
+    else:
+        try:
+            port = int(args['port'][0])
+        except:
+            err = "Invalid port number!"
+
+    if err:
+        return resps(bencode({'failure reason': err}))
+
+    # Crop raises chance of a clash, plausible deniability for the win!
+    phash = md5("%s/%d").hexdigest()[:16] 
+
     # TODO BT: If left=0, the download is done and we should not return any peers.
     event = args.pop('event', [None])[0]
     if event == "stopped":
-        # XXX We should only remove it from this track, but this is good enough.
-        mdel(ip, namespace='I')
+        # Maybe we should only remove it from this track, but this is good enough.
+        mdel(phash, namespace='I')
         return # They are going away, don't waste bw/cpu on this.
-        debug("Deleting peer %s"%ip)
         resps(bencode({'interval': 2048, 'peers': []}))
 
     updatetrack = False
 
     # Get existing peers
-    s = get(key, namespace='K')
+    r = get(key, namespace='K')
 
-    if s:
-        # TODO rate limiting, exponential backoff, etc
+    if r:
 
+        s = r.split('|')
         if len(s) > 32:
-            ips = set(sample(s, 32))
+            ks = sample(s, 32)
         else:
-            ips = s
+            ks = s
 
-        peers = get_multi(ips, namespace='I')
+        peers = get_multi(ks, namespace='I')
 
-        lostpeers = [p for p in ips if p not in peers]
+        lostpeers = (p for p in ks if p not in peers)
         if lostpeers: # Remove lost peers
-            #info("Removed 'lost' peers: "+repr(lostpeers)+" from track: "+key2s(key)) 
-            s.difference_update(lostpeers)
+            s = (k for k in s if k not in lostpeers)
             updatetrack = True
 
-        peers.pop(ip, None) # Remove self from list of returned peers
+        if phash in peers:
+            peers.remove(phash) # Remove self from returned peers
 
-    # New track! Create track with this ip and we are done!
+    # New track!
     else:
-        s = set([])
+        s = []
         peers = {}
 
-    mset(ip, (port,), namespace='I') # This might be redundant, but ensures we update the port number in case it has changed.
-    if ip not in s: # Assume new peer
-        s.add(ip)
+    mset(phash, '|'.join((ip, port,)), namespace='I') # This might be redundant, but ensures we update the port number in case it has changed.
+    if phash not in s: # Assume new peer
+        s.append(phash)
         updatetrack = True
 
     if updatetrack: 
-        mset(key, s, namespace='K')
+        mset(key, '|'.join(s), namespace='K')
 
     #debug("Returned %s peers" % len(peers))
-    resps(bencode({'interval': 4424, 'peers': [{'ip': p, 'port': peers[p][0]} for p in peers]}))
+    ps = dict((k, peers[k].split('|')) for k in peers)
+    pl = ({'ip': ps[h][0], 'port': ps[h][1]} for h in ps)
+    resps(bencode({'interval': 4424, 'peers': pl}))
 
 #main = prof_main
 main = real_main

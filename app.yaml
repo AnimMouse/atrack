@@ -1,6 +1,6 @@
 #application: atrack
 application: bittrk  
-version: 4
+version: 5
 runtime: python
 api_version: 1
 
@@ -10,13 +10,9 @@ handlers:
   script: main.py
   secure: optional
 
-- url: /announceannounce # Broken requests?!?!?
-  script: main.py
-  secure: optional
-
-
 - url: /ntrack
   script: main.py
+  secure: optional
 
 - url: /static/
   static_dir: static
