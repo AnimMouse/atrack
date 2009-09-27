@@ -15,7 +15,7 @@ Memcached namespaces:
 - 'I': peer-hash -> Metadata string: 'ip|port'
 - 'D': Debug data
 
-A peer hash is: md5("%s/%d").hexdigest()[:16]
+A peer hash is: md5("%s/%d" % (ip, port)).hexdigest()[:16]
 
 This allows peer info to be shared and decay by itself, we will delete
 references to peer from the key namespace lazily.
