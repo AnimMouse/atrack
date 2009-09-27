@@ -70,7 +70,7 @@ def real_main():
         return resps(bencode({'failure reason': err}))
 
     # Crop raises chance of a clash, plausible deniability for the win!
-    phash = md5("%s/%d").hexdigest()[:16] 
+    phash = md5("%s/%d" % (ip, port)).hexdigest()[:16] 
 
     # TODO BT: If left=0, the download is done and we should not return any peers.
     event = args.pop('event', [None])[0]
@@ -97,18 +97,18 @@ def real_main():
 
         lostpeers = (p for p in ks if p not in peers)
         if lostpeers: # Remove lost peers
-            s = (k for k in s if k not in lostpeers)
+            s = [k for k in s if k not in lostpeers]
             updatetrack = True
 
         if phash in peers:
-            peers.remove(phash) # Remove self from returned peers
+            peers.pop(phash, None) # Remove self from returned peers
 
     # New track!
     else:
         s = []
         peers = {}
 
-    mset(phash, '|'.join((ip, port,)), namespace='I') # This might be redundant, but ensures we update the port number in case it has changed.
+    mset(phash, '|'.join((ip, str(port))), namespace='I') # This might be redundant, but ensures we update the port number in case it has changed.
     if phash not in s: # Assume new peer
         s.append(phash)
         updatetrack = True
@@ -118,7 +118,7 @@ def real_main():
 
     #debug("Returned %s peers" % len(peers))
     ps = dict((k, peers[k].split('|')) for k in peers)
-    pl = ({'ip': ps[h][0], 'port': ps[h][1]} for h in ps)
+    pl = [{'ip': ps[h][0], 'port': ps[h][1]} for h in ps]
     resps(bencode({'interval': 4424, 'peers': pl}))
 
 #main = prof_main
