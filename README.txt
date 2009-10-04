@@ -1,6 +1,8 @@
 Atrack: An Ntrack Implementation
 ===============================
 
+http://repo.cat-v.org/atrack/
+
 Atrack is a minimalist implementation of the Ntrack protocol (see ntrac.txt)
 designed for usage with Google's App Engine.
 
@@ -23,15 +25,7 @@ Irc: #bittorrent in irc.freenode.org
 License
 -------
 
-All original code is in the public domain.
+All original code is in the public domain, MIT, or ISC at your choice.
 
-The Bencode generation code originally from the standard python bittorrent implementation is by Petru Paler and under a MIT licenses (AFAIK).
-
-
-Notes
------
-
-For reference here are other trackers for app engine at various stages of development
-
-- http://code.google.com/p/open-tracker/ 
-
+The Bencode generation code originally from the standard python bittorrent
+implementation is by Petru Paler and under a MIT licenses (AFAIK).
