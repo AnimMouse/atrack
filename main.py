@@ -25,6 +25,7 @@ references to peer from the key namespace lazily.
 """
 
 STATS=True # Set to false if you don't want to keep track of the number of seeders and leechers
+ERRORS=True # If false we don't bother report errors to clients to save(?) bandwith and CPU
 INTERVAL=4424
 
 def resps(s):
@@ -57,8 +58,9 @@ def real_main():
 
     for a in ('info_hash', 'port'):
         if a not in args or len(args[a]) < 1:
-            return # Maybe now that trackhub is fixed we shoud be less harsh?
-            resps(bencode({'failure reason': "You must provide %s!"%a}))
+            if ERRORS:
+                resps(bencode({'failure reason': "You must provide %s!"%a}))
+            return
 
     ip = environ['REMOTE_ADDR']
     key = args['info_hash'][0]
@@ -77,7 +79,9 @@ def real_main():
             err = "Invalid port number!"
 
     if err:
-        return resps(bencode({'failure reason': err}))
+        if ERRORS:
+            resps(bencode({'failure reason': err}))
+        return
 
     # Crop raises chance of a clash, plausible deniability for the win!
     phash = md5("%s/%d" % (ip, port)).hexdigest()[:16] 
