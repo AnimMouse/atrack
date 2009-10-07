@@ -1,13 +1,44 @@
-<html>
-<head>
-    <title>Bittrk - Experimental open installation of the Atrack tracker for Google App Engine</title>
-    <link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
-</head>
+<!DOCTYPE HTML>
+<html><head>
+<title>Bittrk - Experimental open installation of the Atrack tracker for Google App Engine</title>
+<link rel="stylesheet" type="text/css" href="http://www.trackon.org/static/fluid960gs/all.css" media="screen">
+<!--[if IE 6]><link rel="stylesheet" type="text/css" href="/static/fluid960gs/ie6.css" media="screen" /><![endif]-->
+<!--[if IE 7]><link rel="stylesheet" type="text/css" href="/static/fluid960gs/ie.css" media="screen" /><![endif]-->
 
-<body>
+<link rel="stylesheet" href="http://www.trackon.org/static/style.css" type="text/css">
+<style>
+body {
+    background-color: black;
+}
+#branding {
+    background-color: #6A5ACD !important;
+}
+</style>
+<link rel="shortcut icon" href="/favicon.ico" type="image/vnd.microsoft.icon" />
 
-    <h1>Bittrk <small><i>Alpha 5</i></small></h1>
+</head><body>
 
+<div class="container_12">
+
+<div class="grid_12">
+    <h1 id=branding><b>Bittrk</b> <span class=small><i>Beta 5</i></span></h1>
+</div>
+
+<div class="grid_12">
+    <ul class="nav main">
+        <li><a href="http://repo.cat-v.org/atrack/">atrack</a></li>
+        <li><a href="http://hg.cat-v.org/atrack/">source</a></li>
+        <li><a>links</a>
+            <ul>
+            <li><a href="http://www.trackon.org/">Trackon</a></li>
+            </ul>
+        </li>
+        <li class=secondary><a href="http://uriel.cat-v.org/contact">contact</a></li>
+    </ul>
+</div>
+
+
+<div class=grid_12>
 This is an experimental tracker.
 
 <p>You can use the following addresses to add the tracker to your torrents or
@@ -32,8 +63,16 @@ doesn't mean they aren't there, but atrack doesn't keep track (pun not intended
 
 <p>You can also find <a href="http://track-on.appspot.com">a list of known open and public trackers at Trackon</a>.
 
-<hr>
-<small><a href="http://cat-v.org">This site is a cat-v.org production</a>. - <i>Because sharing is caring.</i></small> 
+</div>
+
+<div class=grid_12 id=site_info>
+    <div class="box center">
+<p><a href="http://cat-v.org">This site is a cat-v.org production</a>. - <i>Because sharing is caring.</i></p>
+    </div>
+</div>
+
+<div class="clear"></div>
+</div>
 
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
@@ -48,5 +87,5 @@ var pageTracker2 = _gat._getTracker("UA-1220719-12");
 pageTracker2._trackPageview();
 } catch(err) {}</script>
 
-</body>
-</html>
+
+</body></html>
