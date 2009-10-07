@@ -15,6 +15,7 @@ Memcached namespaces:
 
 - 'K': Keys / info_hashes -> String of | delimited peer-hashes
 - 'I': peer-hash -> Metadata string: 'ip|port'
+- 'S': "%s!%s" (Keys/info_hash, param) -> Integer
 - 'D': Debug data
 
 A peer hash is: md5("%s/%d" % (ip, port)).hexdigest()[:16]
@@ -22,6 +23,8 @@ A peer hash is: md5("%s/%d" % (ip, port)).hexdigest()[:16]
 This allows peer info to be shared and decay by itself, we will delete
 references to peer from the key namespace lazily.
 """
+STATS=True # Set to false if you don't want to keep track of the number of seeders and leechers
+
 
 def resps(s):
     print "Content-type: text/plain"
@@ -58,6 +61,10 @@ def real_main():
 
     ip = environ['REMOTE_ADDR']
     key = args['info_hash'][0]
+    if STATS:
+        key_complete = '%s!complete'%key
+        key_incomplete = '%s!incomplete'%key
+    left = args.pop('left', [None])[0]
     err = None
 
     if(len(key) > 128):
@@ -76,11 +83,22 @@ def real_main():
 
     # TODO BT: If left=0, the download is done and we should not return any peers.
     event = args.pop('event', [None])[0]
-    if event == "stopped":
+    if event == 'stopped':
         # Maybe we should only remove it from this track, but this is good enough.
         mdel(phash, namespace='I')
+        if STATS:
+            # XXX Danger of incomplete underflow!
+            if left == '0':
+                decrement(key_complete, namespace='S')
+            else:
+                decrement(key_incomplete, namespace='S')
+
         return # They are going away, don't waste bw/cpu on this.
         resps(bencode({'interval': 2048, 'peers': []}))
+
+    elif STATS and event == 'completed':
+        decrement(key_incomplete, namespace='S')
+        increment(key_complete, namespace='S')
 
     updatetrack = False
 
@@ -101,6 +119,9 @@ def real_main():
         if lostpeers: # Remove lost peers
             s = [k for k in s if k not in lostpeers]
             updatetrack = True
+            if STATS:
+                # XXX If we underflow, should decrement from '!complete'
+                decrement(key_incomplete, len(lostpeers), namespace='S') 
 
         if phash in peers:
             peers.pop(phash, None) # Remove self from returned peers
@@ -109,11 +130,21 @@ def real_main():
     else:
         s = []
         peers = {}
+        if STATS:
+            mset(key_complete, '0', namespace='S')
+            mset(key_incomplete, '0', namespace='S')
 
-    mset(phash, '|'.join((ip, str(port))), namespace='I') # This might be redundant, but ensures we update the port number in case it has changed.
+    # Might be redundant, but ensures we update the port number if it has changed.
+    mset(phash, '|'.join((ip, str(port))), namespace='I') 
     if phash not in s: # Assume new peer
         s.append(phash)
         updatetrack = True
+        if STATS: # Should we bother to check event == 'started'? Why?
+            if left == '0':
+                increment(key_complete, namespace='S')
+            else:
+                increment(key_incomplete, namespace='S')
+
 
     if updatetrack: 
         mset(key, '|'.join(s), namespace='K')
@@ -121,7 +152,11 @@ def real_main():
     #debug("Returned %s peers" % len(peers))
     ps = dict((k, peers[k].split('|')) for k in peers)
     pl = [{'ip': ps[h][0], 'port': ps[h][1]} for h in ps]
-    resps(bencode({'interval': 4424, 'peers': pl}))
+    if STATS:
+        resps(bencode({'interval':4424, 'peers':pl, 'complete':get(key_complete, namespace='S'), 'incomplete':get(key_incomplete, namespace='S')}))
+    else:
+        resps(bencode({'interval':4424, 'peers': pl}))
+
 
 #main = prof_main
 main = real_main
