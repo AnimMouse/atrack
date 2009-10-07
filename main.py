@@ -44,8 +44,8 @@ def prof_main():
     stats.sort_stats("time")  # Or cumulative
     stats.print_stats(80)  # 80 = how many to print
     # The rest is optional.
-    # stats.print_callees()
-    # stats.print_callers()
+    stats.print_callees()
+    stats.print_callers()
     logging.info("Profile data:\n%s", stream.getvalue())
 
 
@@ -150,15 +150,15 @@ def real_main():
             else:
                 increment(key_incomplete, namespace='S')
 
-
     if updatetrack: 
         mset(key, '|'.join(s), namespace='K')
 
-    #debug("Returned %s peers" % len(peers))
     ps = dict((k, peers[k].split('|')) for k in peers)
     pl = [{'ip': ps[h][0], 'port': ps[h][1]} for h in ps]
     if STATS:
-        resps(bencode({'interval':INTERVAL, 'peers':pl, 'complete':get(key_complete, namespace='S'), 'incomplete':get(key_incomplete, namespace='S')}))
+        resps(bencode({'interval':INTERVAL, 'peers':pl,
+            'complete':get(key_complete, namespace='S'),
+            'incomplete':get(key_incomplete, namespace='S')}))
     else:
         resps(bencode({'interval':INTERVAL, 'peers': pl}))
 
