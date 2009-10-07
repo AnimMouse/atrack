@@ -3,7 +3,7 @@ from os import environ
 from cgi import parse_qs
 from hashlib import md5
 from random import sample
-from google.appengine.api.memcache import get, set as mset, get_multi, delete as mdel
+from google.appengine.api.memcache import get, set as mset, get_multi, delete as mdel, incr, decr
 
 """
 A ntrack tracker
@@ -94,16 +94,16 @@ def real_main():
         if STATS:
             # XXX Danger of incomplete underflow!
             if left == '0':
-                decrement(key_complete, namespace='S')
+                decr(key_complete, namespace='S')
             else:
-                decrement(key_incomplete, namespace='S')
+                decr(key_incomplete, namespace='S')
 
         return # They are going away, don't waste bw/cpu on this.
         resps(bencode({'interval': INTERVAL, 'peers': []}))
 
     elif STATS and event == 'completed':
-        decrement(key_incomplete, namespace='S')
-        increment(key_complete, namespace='S')
+        decr(key_incomplete, namespace='S')
+        incr(key_complete, namespace='S')
 
     updatetrack = False
 
@@ -126,7 +126,7 @@ def real_main():
             updatetrack = True
             if STATS:
                 # XXX If we underflow, should decrement from '!complete'
-                decrement(key_incomplete, len(lostpeers), namespace='S') 
+                decr(key_incomplete, sum(1 for x in lostpeers), namespace='S') 
 
         if phash in peers:
             peers.pop(phash, None) # Remove self from returned peers
@@ -146,9 +146,9 @@ def real_main():
         updatetrack = True
         if STATS: # Should we bother to check event == 'started'? Why?
             if left == '0':
-                increment(key_complete, namespace='S')
+                incr(key_complete, namespace='S')
             else:
-                increment(key_incomplete, namespace='S')
+                incr(key_incomplete, namespace='S')
 
     if updatetrack: 
         mset(key, '|'.join(s), namespace='K')
@@ -157,8 +157,8 @@ def real_main():
     pl = [{'ip': ps[h][0], 'port': ps[h][1]} for h in ps]
     if STATS:
         resps(bencode({'interval':INTERVAL, 'peers':pl,
-            'complete':get(key_complete, namespace='S'),
-            'incomplete':get(key_incomplete, namespace='S')}))
+            'complete':(get(key_complete, namespace='S') or 0),
+            'incomplete':(get(key_incomplete, namespace='S') or 0)}))
     else:
         resps(bencode({'interval':INTERVAL, 'peers': pl}))
 
