@@ -23,8 +23,9 @@ A peer hash is: md5("%s/%d" % (ip, port)).hexdigest()[:16]
 This allows peer info to be shared and decay by itself, we will delete
 references to peer from the key namespace lazily.
 """
-STATS=True # Set to false if you don't want to keep track of the number of seeders and leechers
 
+STATS=True # Set to false if you don't want to keep track of the number of seeders and leechers
+INTERVAL=4424
 
 def resps(s):
     print "Content-type: text/plain"
@@ -94,7 +95,7 @@ def real_main():
                 decrement(key_incomplete, namespace='S')
 
         return # They are going away, don't waste bw/cpu on this.
-        resps(bencode({'interval': 2048, 'peers': []}))
+        resps(bencode({'interval': INTERVAL, 'peers': []}))
 
     elif STATS and event == 'completed':
         decrement(key_incomplete, namespace='S')
@@ -153,9 +154,9 @@ def real_main():
     ps = dict((k, peers[k].split('|')) for k in peers)
     pl = [{'ip': ps[h][0], 'port': ps[h][1]} for h in ps]
     if STATS:
-        resps(bencode({'interval':4424, 'peers':pl, 'complete':get(key_complete, namespace='S'), 'incomplete':get(key_incomplete, namespace='S')}))
+        resps(bencode({'interval':INTERVAL, 'peers':pl, 'complete':get(key_complete, namespace='S'), 'incomplete':get(key_incomplete, namespace='S')}))
     else:
-        resps(bencode({'interval':4424, 'peers': pl}))
+        resps(bencode({'interval':INTERVAL, 'peers': pl}))
 
 
 #main = prof_main
