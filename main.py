@@ -125,6 +125,7 @@ def real_main():
             s = [k for k in s if k not in lostpeers]
             updatetrack = True
             if STATS:
+                # XXX medecau suggests we might use len(s) instead of counting leechers.
                 # XXX If we underflow, should decrement from '!complete'
                 decr(key_incomplete, sum(1 for x in lostpeers), namespace='S') 
 
