@@ -3,6 +3,7 @@ from os import environ
 from cgi import parse_qs
 from hashlib import md5
 from random import sample
+from struct import pack
 from google.appengine.api.memcache import get, set as mset, get_multi, delete as mdel, incr, decr
 
 """
@@ -14,7 +15,8 @@ http://repo.cat-v.org/atrack/
 Memcached namespaces:
 
 - 'K': Keys / info_hashes -> String of | delimited peer-hashes
-- 'I': peer-hash -> Metadata string: 'ip|port'
+- 'I': peer-hash -> Metadata string: 'ip|port' DEPRECATED
+- 'P': peer-hash -> ip+port in 'compact' binary format.
 - 'S': "%s!%s" (Keys/info_hash, param) -> Integer
 - 'D': Debug data
 
@@ -91,7 +93,7 @@ def real_main():
     event = args.pop('event', [None])[0]
     if event == 'stopped':
         # Maybe we should only remove it from this track, but this is good enough.
-        mdel(phash, namespace='I')
+        mdel(phash, namespace='P')
         if STATS:
             # XXX Danger of incomplete underflow!
             if left == '0':
@@ -119,7 +121,7 @@ def real_main():
         else:
             ks = s
 
-        peers = get_multi(ks, namespace='I')
+        peers = get_multi(ks, namespace='P')
 
         lostpeers = (p for p in ks if p not in peers)
         if lostpeers: # Remove lost peers
@@ -141,9 +143,12 @@ def real_main():
             mset(key_complete, '0', namespace='S')
             mset(key_incomplete, '0', namespace='S')
 
-    # Might be redundant, but ensures we update the port number if it has changed.
-    mset(phash, '|'.join((ip, str(port))), namespace='I') 
     if phash not in s: # Assume new peer
+        # XXX We don't refresh the peers expiration date on every request!
+        #mset(phash, '|'.join((ip, str(port))), namespace='I') 
+        al = [int(i) for i in ip.split('.')]
+        al.append(port)
+        mset(phash, pack('>4BH', *al), namespace='P') 
         s.append(phash)
         updatetrack = True
         if STATS: # Should we bother to check event == 'started'? Why?
@@ -155,14 +160,15 @@ def real_main():
     if updatetrack: 
         mset(key, '|'.join(s), namespace='K')
 
-    ps = dict((k, peers[k].split('|')) for k in peers)
-    pl = [{'ip': ps[h][0], 'port': ps[h][1]} for h in ps]
+    #ps = dict((k, peers[k].split('|')) for k in peers)
+    #pl = [{'ip': ps[h][0], 'port': ps[h][1]} for h in ps]
+    cpl = ''.join(peers.values())
     if STATS:
-        resps(bencode({'interval':INTERVAL, 'peers':pl,
+        resps(bencode({'interval':INTERVAL, 'peers':cpl,
             'complete':(get(key_complete, namespace='S') or 0),
             'incomplete':(get(key_incomplete, namespace='S') or 0)}))
     else:
-        resps(bencode({'interval':INTERVAL, 'peers': pl}))
+        resps(bencode({'interval':INTERVAL, 'peers':cpl}))
 
 
 #main = prof_main
