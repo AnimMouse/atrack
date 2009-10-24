@@ -6,6 +6,14 @@ api_version: 1
 
 handlers:
 
+# This deals with all kind of broken links and people that don't know how to
+# configure their bt clients, contains a meta-refresh which only browsers
+# can handle. Saves some bw and cpu avoiding the trigger of 404 errors.
+# To save some more bw point this to static/null.html
+- url: /announce[^?].*
+  static_files: static/redirect.html
+  upload: static/redirect.html
+
 - url: /announce
   script: main.py
   secure: optional
