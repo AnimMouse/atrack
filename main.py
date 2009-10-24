@@ -78,6 +78,9 @@ def real_main():
     else:
         try:
             port = int(args['port'][0])
+            if port > 65535 or port < 0:
+                err = "Invalid port number!"
+
         except:
             err = "Invalid port number!"
 
