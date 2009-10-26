@@ -28,7 +28,7 @@ references to peer from the key namespace lazily.
 
 STATS=False # Set to false if you don't want to keep track of the number of seeders and leechers
 ERRORS=True # If false we don't bother report errors to clients to save(?) bandwith and CPU
-INTERVAL=4424
+INTERVAL=18424
 MEMEXPIRE=60*60*24*2 # When to expire peers from memcache?
 
 def resps(s):
@@ -60,7 +60,7 @@ def real_main():
         return
 
     for a in ('info_hash', 'port'):
-        if a not in args or len(args[a]) < 1:
+        if a not in args or len(args[a]) != 1:
             if ERRORS:
                 resps(bencode({'failure reason': "You must provide %s!"%a}))
             return
@@ -78,7 +78,7 @@ def real_main():
     else:
         try:
             port = int(args['port'][0])
-            if port > 65535 or port < 0:
+            if port > 65535 or port < 1:
                 err = "Invalid port number!"
 
         except:
@@ -90,7 +90,7 @@ def real_main():
         return
 
     # Crop raises chance of a clash, plausible deniability for the win!
-    phash = md5("%s/%d" % (ip, port)).hexdigest()[:16] 
+    phash = md5("%s/%d" % (ip, port)).hexdigest()[:16]  # XXX TODO Instead of a hash, we should use the packed ip+port
 
     # TODO BT: If left=0, the download is done and we should not return any peers.
     event = args.pop('event', [None])[0]
@@ -126,17 +126,20 @@ def real_main():
 
         peers = get_multi(ks, namespace='P')
 
-        lostpeers = (p for p in ks if p not in peers)
+        # NOTE Do not use a generator, generators are always true even if empty!
+        lostpeers = [p for p in ks if p not in peers] 
         if lostpeers: # Remove lost peers
             s = [k for k in s if k not in lostpeers]
             updatetrack = True
             if STATS:
                 # XXX medecau suggests we might use len(s) instead of counting leechers.
                 # XXX If we underflow, should decrement from '!complete'
-                decr(key_incomplete, sum(1 for x in lostpeers), namespace='S') 
+                decr(key_incomplete, len(lostpeers), namespace='S') 
 
-        if phash in peers:
-            peers.pop(phash, None) # Remove self from returned peers
+        # Remove self from returned peers
+        # XXX Commented out as we are shorter on CPU than bw
+        #if phash in peers:
+        #    peers.pop(phash, None) 
 
     # New track!
     else:
@@ -149,9 +152,8 @@ def real_main():
     if phash not in s: # Assume new peer
         # XXX We don't refresh the peers expiration date on every request!
         #mset(phash, '|'.join((ip, str(port))), namespace='I') 
-        al = [int(i) for i in ip.split('.')]
-        al.append(port)
-        mset(phash, pack('>4BH', *al), namespace='P') 
+        i = ip.split('.')
+        mset(phash, pack('>4BH', int(i[0]), int(i[1]), int(i[2]), int(i[3]), port), namespace='P') 
         s.append(phash)
         updatetrack = True
         if STATS: # Should we bother to check event == 'started'? Why?
@@ -160,7 +162,7 @@ def real_main():
             else:
                 incr(key_incomplete, namespace='S')
 
-    if updatetrack: 
+    if updatetrack:
         mset(key, '|'.join(s), namespace='K')
 
     #ps = dict((k, peers[k].split('|')) for k in peers)
