@@ -14,9 +14,10 @@ http://repo.cat-v.org/atrack/
 
 Memcached namespaces:
 
-- 'K': Keys / info_hashes -> String of | delimited peer-hashes
+- 'T': Keys / info_hashes -> 'Compact' style string of binary encoded ip+ports 
+- 'K': Keys / info_hashes -> String of | delimited peer-hashes DEPRECATED
 - 'I': peer-hash -> Metadata string: 'ip|port' DEPRECATED
-- 'P': peer-hash -> ip+port in 'compact' binary format.
+- 'P': peer-hash -> Anything 'true'. TODO: Should be a 'ref count'.
 - 'S': "%s!%s" (Keys/info_hash, param) -> Integer
 - 'D': Debug data
 
@@ -65,7 +66,6 @@ def real_main():
                 resps(bencode({'failure reason': "You must provide %s!"%a}))
             return
 
-    ip = environ['REMOTE_ADDR']
     key = args['info_hash'][0]
     if STATS:
         key_complete = '%s!complete'%key
@@ -90,8 +90,9 @@ def real_main():
         return
 
     # Crop raises chance of a clash, plausible deniability for the win!
-    phash = md5("%s/%d" % (ip, port)).hexdigest()[:16]  # XXX TODO Instead of a hash, we should use the packed ip+port
-
+    #phash = md5("%s/%d" % (ip, port)).hexdigest()[:16]  # XXX TODO Instead of a hash, we should use the packed ip+port
+    i = environ['REMOTE_ADDR'].split('.') # TODO Check that it is an v4 address
+    phash = pack('>4BH', int(i[0]), int(i[1]), int(i[2]), int(i[3]), port)
     # TODO BT: If left=0, the download is done and we should not return any peers.
     event = args.pop('event', [None])[0]
     if event == 'stopped':
@@ -114,22 +115,35 @@ def real_main():
     updatetrack = False
 
     # Get existing peers
-    r = get(key, namespace='K')
 
-    if r:
+    PEER_SIZE = 6
+    MAX_PEERS = 32
+    MAX_PEERS_SIZE = MAX_PEERS*PEER_SIZE
+    a = get(key, namespace='T')
+    # TODO: perhaps we should use the array module: http://docs.python.org/library/array.html
 
-        s = r.split('|')
-        if len(s) > 32:
-            ks = sample(s, 32)
+    if a:
+        als = [a[x:x+PEER_SIZE] for x in xrange(0, l, PEER_SIZE)]
+        l = len(als)
+        if l > MAX_PEERS:
+            i = randrange(0, l-MAX_PEERS)
+            ii = i*PEER_SIZE
+            rs = a[ii:ii+MAX_PEERS_SIZE]
+            rls = als[i:i+MAX_PEERS]
         else:
-            ks = s
+            rs = a
+            rls = als
 
-        peers = get_multi(ks, namespace='P')
+        rrls = get_multi(rls, namespace='P').keys()
 
         # NOTE Do not use a generator, generators are always true even if empty!
-        lostpeers = [p for p in ks if p not in peers] 
+        lostpeers = [p for p in rls if p not in rrls] 
         if lostpeers: # Remove lost peers
-            s = [k for k in s if k not in lostpeers]
+            rs = ''.join(rrls)
+
+            [als.remove(p) for p in lostpeers if p in als]
+            a = ''.join(als)
+
             updatetrack = True
             if STATS:
                 # XXX medecau suggests we might use len(s) instead of counting leechers.
@@ -143,18 +157,16 @@ def real_main():
 
     # New track!
     else:
-        s = []
-        peers = {}
+        a = rs = ''
+        als = []
         if STATS:
             mset(key_complete, '0', namespace='S')
             mset(key_incomplete, '0', namespace='S')
 
-    if phash not in s: # Assume new peer
+    if phash not in als: # Assume new peer
         # XXX We don't refresh the peers expiration date on every request!
-        #mset(phash, '|'.join((ip, str(port))), namespace='I') 
-        i = ip.split('.')
-        mset(phash, pack('>4BH', int(i[0]), int(i[1]), int(i[2]), int(i[3]), port), namespace='P') 
-        s.append(phash)
+        mset(phash, 1, namespace='P') 
+        a += phash
         updatetrack = True
         if STATS: # Should we bother to check event == 'started'? Why?
             if left == '0':
@@ -163,17 +175,14 @@ def real_main():
                 incr(key_incomplete, namespace='S')
 
     if updatetrack:
-        mset(key, '|'.join(s), namespace='K')
+        mset(key, a, namespace='K')
 
-    #ps = dict((k, peers[k].split('|')) for k in peers)
-    #pl = [{'ip': ps[h][0], 'port': ps[h][1]} for h in ps]
-    cpl = ''.join(peers.values())
     if STATS:
-        resps(bencode({'interval':INTERVAL, 'peers':cpl,
+        resps(bencode({'interval':INTERVAL, 'peers':rs,
             'complete':(get(key_complete, namespace='S') or 0),
             'incomplete':(get(key_incomplete, namespace='S') or 0)}))
     else:
-        resps(bencode({'interval':INTERVAL, 'peers':cpl}))
+        resps(bencode({'interval':INTERVAL, 'peers':rs}))
 
 
 #main = prof_main
