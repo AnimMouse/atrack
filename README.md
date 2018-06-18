@@ -1,6 +1,6 @@
-# Atrack Torrent Tracker on GAE
+# Atrack Torrent Tracker
 
-Atrack is a ntrack / Bittorrent tracker designed from the ground up to run on Google’s App Engine grid.
+Atrack is a [ntrack](http://repo.cat-v.org/atrack/ntrack) / Bittorrent tracker designed from the ground up to run on [Google’s App Engine](https://cloud.google.com/appengine/) grid.
 
 Atrack is based on the abandoned [Atrack](http://repo.cat-v.org/atrack/) by [Uriel †](https://github.com/uriel).
 
