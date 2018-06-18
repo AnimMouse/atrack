@@ -1,0 +1,23 @@
+application: atrack-torrent-tracker
+version: 1
+module: redirect
+runtime: php55
+api_version: 1
+threadsafe: true
+instance_class: B1
+basic_scaling:
+  idle_timeout: 1m
+  max_instances: 1
+  
+error_handlers:
+- error_code: over_quota
+  file: over_quota.html
+  
+handlers:
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+  secure: always
+  
+- url: /.*
+  script: index.php
