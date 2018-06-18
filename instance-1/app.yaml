@@ -1,0 +1,29 @@
+application: atrack-torrent-tracker
+version: 1
+module: instance-1
+runtime: python27
+api_version: 1
+threadsafe: false
+
+handlers:
+- url: /
+  static_files: redirect.html
+  upload: redirect.html
+  secure: optional
+  
+- url: /robots.txt
+  static_files: robots.txt
+  upload: robots.txt
+  secure: always
+  
+- url: /announce
+  script: main.py
+  secure: optional
+  
+- url: /ntrack
+  script: main.py
+  secure: optional
+  
+- url: /mestat
+  script: mestat.py
+  secure: always
