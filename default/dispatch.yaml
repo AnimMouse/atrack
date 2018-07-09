@@ -1,7 +1,7 @@
 dispatch:
 - url: "track.ga/*"
   service: redirect
-
+  
 - url: "www.track.ga/*"
   service: redirect
   
