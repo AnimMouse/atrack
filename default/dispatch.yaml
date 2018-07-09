@@ -5,6 +5,9 @@ dispatch:
 - url: "www.track.ga/*"
   service: redirect
   
+- url: "*.appspot.com/*"
+  service: redirect
+  
 - url: "1.track.ga/*"
   service: instance-1
   
