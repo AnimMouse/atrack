@@ -1,4 +1,10 @@
 dispatch:
+- url: "1.track.ga/*"
+  service: instance-1
+  
+- url: "2.track.ga/*"
+  service: instance-2
+  
 - url: "track.ga/*"
   service: redirect
   
@@ -7,9 +13,3 @@ dispatch:
   
 - url: "*.appspot.com/*"
   service: redirect
-  
-- url: "1.track.ga/*"
-  service: instance-1
-  
-- url: "2.track.ga/*"
-  service: instance-2
