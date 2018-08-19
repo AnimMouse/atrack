@@ -1,4 +1,4 @@
-application: atrack-torrent-tracker
+application: atrack-tracker
 version: 1
 module: redirect
 runtime: php55
