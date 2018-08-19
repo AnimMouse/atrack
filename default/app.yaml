@@ -1,4 +1,4 @@
-application: atrack-torrent-tracker
+application: atrack-tracker
 version: 1
 runtime: php55
 api_version: 1
