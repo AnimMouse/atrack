@@ -19,4 +19,4 @@ Note: Installation is based on my configuration, change it for you.
 
 Feel free to make suggestions, create pull requests, report issues or any other feedback.
 
-Contact me here.
+Contact me on contact@animmouse.ga
