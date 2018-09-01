@@ -4,12 +4,11 @@ module: instance-1
 runtime: python27
 api_version: 1
 threadsafe: false
-
+  
 handlers:
 - url: /
   static_files: redirect.html
   upload: redirect.html
-  secure: optional
   
 - url: /robots.txt
   static_files: robots.txt
@@ -18,12 +17,24 @@ handlers:
   
 - url: /announce
   script: main.py
-  secure: optional
+  secure: always
+  
+- url: /announce[^?].*
+  static_files: redirect.html
+  upload: redirect.html
   
 - url: /ntrack
   script: main.py
-  secure: optional
+  secure: always
+  
+- url: /scrape
+  static_files: null.html
+  upload: null.html
   
 - url: /mestat
   script: mestat.py
   secure: always
+  
+- url: /.*
+  static_files: redirect.html
+  upload: redirect.html
