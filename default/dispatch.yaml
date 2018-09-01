@@ -2,6 +2,18 @@ dispatch:
 - url: "1.track.ga/*"
   service: instance-1
   
+- url: "2.track.ga/*"
+  service: instance-1
+  
+- url: "3.track.ga/*"
+  service: instance-1
+  
+- url: "4.track.ga/*"
+  service: instance-1
+  
+- url: "5.track.ga/*"
+  service: instance-1
+  
 - url: "track.ga/*"
   service: redirect
   
