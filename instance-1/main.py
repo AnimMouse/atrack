@@ -28,7 +28,7 @@ references to peer from the key namespace lazily.
 
 STATS=True # Set to false if you don't want to keep track of the number of seeders and leechers
 ERRORS=True # If false we don't bother report errors to clients to save(?) bandwith and CPU
-INTERVAL=3600
+INTERVAL=10800
 MEMEXPIRE=60*60*24*2 # When to expire peers from memcache?
 
 def resps(s):
