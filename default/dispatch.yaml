@@ -1,5 +1,5 @@
 dispatch:
-- url: "2.track.ga/*"
+- url: "3.track.ga/*"
   service: instance-1
   
 - url: "track.ga/*"
