@@ -1,11 +1,11 @@
 dispatch:
-- url: "1.track.ga/*"
+- url: "1.tracker.eu.org/*"
   service: instance-1
   
-- url: "track.ga/*"
+- url: "tracker.eu.org/*"
   service: redirect
   
-- url: "www.track.ga/*"
+- url: "www.tracker.eu.org/*"
   service: redirect
   
 - url: "*.appspot.com/*"
