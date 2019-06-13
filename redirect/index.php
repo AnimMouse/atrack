@@ -1,4 +1,4 @@
 <?php
-header("Location: https://a.track.ga", true, 301);
+header("Location: https://atrack.eu.org", true, 301);
 exit;
 ?>
