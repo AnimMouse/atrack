@@ -1,8 +1,4 @@
 dispatch:
-# Redirect to tracker instance
-- url: "1.tracker.eu.org/*"
-  service: instance-1
-  
 # Redirect to the website
 - url: "tracker.eu.org/*"
   service: redirect
