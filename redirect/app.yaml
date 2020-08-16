@@ -1,6 +1,4 @@
-application: atrack-tracker
-version: 1
-module: redirect
+service: redirect
 runtime: php55
 api_version: 1
 threadsafe: true
