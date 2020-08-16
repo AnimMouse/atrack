@@ -1,9 +1,9 @@
 dispatch:
 # Redirect to the website
-- url: "tracker.eu.org/*"
+- url: "120181311.xyz/*"
   service: redirect
   
-- url: "www.tracker.eu.org/*"
+- url: "www.120181311.xyz/*"
   service: redirect
   
 - url: "*.appspot.com/*"
