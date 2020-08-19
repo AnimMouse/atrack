@@ -1,7 +1,5 @@
 service: redirect
-runtime: php55
-api_version: 1
-threadsafe: true
+runtime: php73
 automatic_scaling:
   max_instances: 1
   
@@ -11,16 +9,10 @@ error_handlers:
   file: over_quota.html
   
 handlers:
-# To let GAE run this backend instance.
-- url: /_ah/start
-  script: $PYTHON_LIB/default_start_handler.py
-  login: admin
-  secure: never
-  
 - url: /robots.txt
   static_files: robots.txt
   upload: robots.txt
   secure: always
   
 - url: /.*
-  script: index.php
+  script: auto
