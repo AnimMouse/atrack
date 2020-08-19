@@ -11,11 +11,14 @@ Atrack is based on the abandoned [Atrack](http://repo.cat-v.org/atrack/) by [Uri
 4. It also aims to respect your privacy, other than what is needed for the most basic tracking (hashes/keys and IP/ports), atrack gathers no information whatsoever.
 
 ## Installation
-This tutorial uses the original App Engine SDK instead of the new Google Cloud SDK.
+This tutorial uses the new Google Cloud SDK (gcloud) instead of the original App Engine SDK (appcfg).
 
-Make sure you have a Google Account and created an application inside a project in Google Cloud Console.
+Make sure you have a Google Account and created an application inside a project in Google Cloud Platform.
+
+Because App Engine now uses Cloud Build to deploy the application, it is necessary to enable billing in order to deploy the application. But you can disable billing afterwards after deploying it.
 1. Clone or Download the latest source [here](https://github.com/AnimMouse/atrack/archive/master.zip).
 2. Download the Google Cloud SDK [here](https://cloud.google.com/sdk/docs)
+3. Set the project name on the gcloud `gcloud config set project project-name`
 3. Deploy the instance by typing this command `gcloud app deploy -v 1` inside the instance folder
 
 ## Contributing
