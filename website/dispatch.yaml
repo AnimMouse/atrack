@@ -8,3 +8,9 @@ dispatch:
   
 - url: "*.appspot.com/*"
   service: redirect
+  
+- url: "tracker.eu.org/*"
+  service: redirect
+  
+- url: "www.tracker.eu.org/*"
+  service: redirect
